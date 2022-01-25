@@ -1,0 +1,18 @@
+{
+  "name": "lertel",
+  "version": "1.0.0",
+  "description": "client agnostic data seeder",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "keywords": [
+    "seeder",
+    "fixtures"
+  ],
+  "author": "radzserg@gmail.com",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^4.5.4"
+  }
+}
