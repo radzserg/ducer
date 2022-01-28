@@ -12,16 +12,16 @@ import {
   ExistingStoriesMap,
   ExtractOutputParameter,
   Factory,
-  StoryBag,
+  LertelStoryBag,
 } from "./types";
 
-export class StoryBagBuilder<S extends StoryBag = {}> {
-  public readonly bag: StoryBag = {};
+export class StoryBag<S extends LertelStoryBag = {}> {
+  public readonly bag: LertelStoryBag = {};
 
   public addStory<N extends string, F extends Factory<any, any>>(
     name: N,
     f: F
-  ): StoryBagBuilder<AddSimpleFactory<S, N, F>> {
+  ): StoryBag<AddSimpleFactory<S, N, F>> {
     //this.bag[name] = f;
     return ({} as unknown) as any;
   }
@@ -39,7 +39,7 @@ export class StoryBagBuilder<S extends StoryBag = {}> {
     name: N,
     existingStoriesMap: M,
     factory: F
-  ): StoryBagBuilder<AddParentFactory<S, N, M, F>> {
+  ): StoryBag<AddParentFactory<S, N, M, F>> {
     return ({} as unknown) as any;
   }
 
@@ -48,7 +48,7 @@ export class StoryBagBuilder<S extends StoryBag = {}> {
   }
 }
 
-const scenarios = new StoryBagBuilder()
+const scenarios = new StoryBag()
   .addStory(
     "user",
     (userData: Partial<UserInput>): User => {

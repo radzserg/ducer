@@ -1,17 +1,17 @@
-export type StoryBag = {
+export type LertelStoryBag = {
   [name in string]: Factory<any, any, any>;
 };
 
 export type Factory<I, O, D = {}> = (input: Partial<I>, dependencies: D) => O;
 
-export type ExtractInputParameter<Type> = Type extends Factory<infer X, any, any>
+type ExtractInputParameter<Type> = Type extends Factory<infer X, any, any>
   ? X
   : never;
 export type ExtractOutputParameter<Type> = Type extends Factory<any, infer X, any>
   ? X
   : never;
 
-export type ExistingStoriesMap<Acc extends StoryBag> = {
+export type ExistingStoriesMap<Acc extends LertelStoryBag> = {
   [x: string]: keyof Acc;
 };
 
@@ -26,7 +26,7 @@ export type ExistingStoriesMap<Acc extends StoryBag> = {
 //   : never;
 
 export type AddSimpleFactory<
-  Acc extends StoryBag,
+  Acc extends LertelStoryBag,
   Name extends string,
   F
 > = Acc &
@@ -35,7 +35,7 @@ export type AddSimpleFactory<
   };
 
 export type AddParentFactory<
-  Acc extends StoryBag,
+  Acc extends LertelStoryBag,
   Name extends string,
   ExistingFactoriesMap extends ExistingStoriesMap<Acc>,
   F extends Factory<
