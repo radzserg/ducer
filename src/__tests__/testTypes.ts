@@ -1,12 +1,12 @@
 export interface UserInput {
-  first_name: string;
-  last_name: string;
+  firstName: string;
+  lastName: string;
 }
 
 export interface User {
   id: number;
   firstName: string;
-  lastMame: string;
+  lastName: string;
   createdAt: Date;
 }
 

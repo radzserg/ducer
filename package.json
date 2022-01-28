@@ -1,10 +1,10 @@
 {
-  "name": "lertel",
+  "name": "ducer",
   "version": "1.0.0",
   "description": "client agnostic data seeder",
   "main": "index.js",
   "scripts": {
-    "test": "test"
+    "test": "jest"
   },
   "keywords": [
     "seeder",
