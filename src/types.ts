@@ -2,12 +2,20 @@ export type StoryBag = {
   [name in string]: Factory<any, any, any>;
 };
 
-export type Factory<I, O, D = {}> = (input: Partial<I>, dependencies?: D) => O;
+export type Factory<I, O, D = {}> = (input: Partial<I>, dependencies: D) => O;
 
-export type ExtractInputParameter<Type> = Type extends Factory<infer X, any, any>
+export type ExtractInputParameter<Type> = Type extends Factory<
+  infer X,
+  any,
+  any
+>
   ? Partial<X>
   : never;
-export type ExtractOutputParameter<Type> = Type extends Factory<any, infer X, any>
+export type ExtractOutputParameter<Type> = Type extends Factory<
+  any,
+  infer X,
+  any
+>
   ? X
   : never;
 
@@ -43,22 +51,22 @@ export type AddParentFactory<
     any,
     {
       [Property in keyof ExistingFactoriesMap]: ExtractOutputParameter<
-      Acc[ExistingFactoriesMap[Property]]
+        Acc[ExistingFactoriesMap[Property]]
       >;
     }
-    >
-  > = Acc &
+  >
+> = Acc &
   {
     [k in Name]: Factory<
-    {
-      [Property in keyof ExistingFactoriesMap]: Partial<
-      ExtractInputParameter<Acc[ExistingFactoriesMap[Property]]>
-      >;
-    } &
-    {
-      [k in Name]: ExtractInputParameter<F>;
-    },
-    ReturnType<F>,
-    void
+      {
+        [Property in keyof ExistingFactoriesMap]: Partial<
+          ExtractInputParameter<Acc[ExistingFactoriesMap[Property]]>
+        >;
+      } &
+        {
+          [k in Name]: ExtractInputParameter<F>;
+        },
+      ReturnType<F>,
+      void
     >;
   };
