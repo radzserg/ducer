@@ -11,12 +11,17 @@ export type ExtractInputParameter<Type> = Type extends Factory<
 >
   ? Partial<X>
   : never;
+
+// type T = Awaited<Promise<PromiseLike<number>>
+
 export type ExtractOutputParameter<Type> = Type extends Factory<
   any,
   infer X,
   any
 >
-  ? X
+  ? X extends PromiseLike<infer U>
+    ? U
+    : X
   : never;
 
 export type ExistingStoriesMap<Acc extends StoryBag> = {

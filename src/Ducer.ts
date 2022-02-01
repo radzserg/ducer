@@ -47,17 +47,41 @@ export class Ducer<S extends StoryBag = {}> {
         {
           [k in N]: ExtractInputParameter<F>;
         }
-    ): ReturnType<F> => {
-      const deps = Object.fromEntries(
-        Object.entries(existingStoriesMap).map(([k, v]) => {
+    ) => {
+      let promiseDeps: any[] = [];
+      let nonPromiseDeps: any[] = [];
+      Object.entries(existingStoriesMap)
+        .forEach(([k, v]) => {
           const depArgs = args[k];
           // @ts-ignore
-          return [k, this.make(v, depArgs)];
-        })
-      );
+          const result: any = this.make(v, depArgs);
+          if (result instanceof Promise) {
+            promiseDeps.push([k, result]);
+          } else {
+            nonPromiseDeps.push([k, result]);
+          }
+        });
 
-      // @ts-ignore
-      return factory(args[name], deps);
+      if (promiseDeps.length) {
+        return new Promise((resolve) => {
+          Promise.all(promiseDeps.map(([_, p]) => p)).then(resolvedDeps => {
+            const deps = {
+              ...Object.fromEntries(promiseDeps.map(([k]) => [k, resolvedDeps.shift()])),
+              ...Object.fromEntries(nonPromiseDeps)
+            }
+            const result = factory(args[name], deps);
+            if (!(result instanceof Promise)) {
+              throw new Error(`${name} factory must be defined as async function`)
+            }
+            result.then((r: any) => {
+              resolve(r)
+            })
+          })
+        });
+      } else {
+        // @ts-ignore
+        return factory(args[name], Object.fromEntries(nonPromiseDeps));
+      }
     };
   }
 
