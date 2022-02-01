@@ -4,7 +4,7 @@ import { PaidProjectInput, User, UserInput } from "./testTypes";
 describe(Ducer.name, () => {
   it("adds simple story to the bag", () => {
     const producer: Ducer = new Ducer();
-    producer.addStory(
+    producer.addFactory(
       "user",
       (userData: Partial<UserInput>): User => {
         return {
@@ -29,7 +29,7 @@ describe(Ducer.name, () => {
 
   it("adds async simple story to the bag", async () => {
     const producer: Ducer = new Ducer();
-    producer.addStory(
+    producer.addFactory(
       "user",
       async (userData: Partial<UserInput>): Promise<User> => {
         return {
@@ -57,7 +57,7 @@ describe(Ducer.name, () => {
 
   it("adds simple sub-story", () => {
     const producer: Ducer = new Ducer();
-    producer.addStory(
+    producer.addFactory(
       "user",
       (userData: Partial<UserInput>): User => {
         return {
@@ -71,7 +71,7 @@ describe(Ducer.name, () => {
         };
       }
     );
-    producer.addSubStory(
+    producer.addParentFactory(
       "paidProject",
       {
         contractor: "user",
@@ -122,7 +122,7 @@ describe(Ducer.name, () => {
 
   it("adds async sub-story", async () => {
     const producer: Ducer = new Ducer();
-    producer.addStory(
+    producer.addFactory(
       "user",
       async (userData: Partial<UserInput>): Promise<User> => {
         return {
@@ -136,7 +136,7 @@ describe(Ducer.name, () => {
         };
       }
     );
-    producer.addSubStory(
+    producer.addParentFactory(
       "paidProject",
       {
         contractor: "user",

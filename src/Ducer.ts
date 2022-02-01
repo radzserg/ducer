@@ -10,7 +10,12 @@ import {
 export class Ducer<S extends StoryBag = {}> {
   public readonly bag: S = {} as S;
 
-  public addStory<N extends string, F extends Factory<any, any>>(
+  /**
+   * Adds factory
+   * @param name - factory name
+   * @param f - factory implementation
+   */
+  public addFactory<N extends string, F extends Factory<any, any>>(
     name: N,
     f: F
   ): asserts this is Ducer<AddSimpleFactory<S, N, F>> {
@@ -21,7 +26,13 @@ export class Ducer<S extends StoryBag = {}> {
     this.bag[name] = f;
   }
 
-  public addSubStory<
+  /**
+   * Adds parent factory
+   * @param name - name
+   * @param existingStoriesMap - existing dependencies map { "dependencyName": "existingFactoryName"}
+   * @param factory - factory implementation
+   */
+  public addParentFactory<
     N extends string,
     M extends ExistingStoriesMap<S>,
     F extends Factory<
@@ -85,6 +96,11 @@ export class Ducer<S extends StoryBag = {}> {
     };
   }
 
+  /**
+   * Calls factory
+   * @param name
+   * @param args
+   */
   public make<N extends keyof S>(
     name: N,
     args: ExtractInputParameter<S[N]>
