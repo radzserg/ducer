@@ -1,8 +1,7 @@
 {
   "name": "ducer",
-  "version": "1.0.0",
-  "description": "client agnostic data seeder",
-  "main": "index.js",
+  "version": "0.0.1",
+  "description": "client agnostic data seeder library",
   "scripts": {
     "test": "jest"
   },
