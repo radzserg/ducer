@@ -29,3 +29,14 @@ export interface UserSettings {
   id: number;
   title: string;
 }
+
+export interface ArticleInput {
+  userId: number;
+  title: string;
+}
+
+export interface Article {
+  id: number;
+  userId: number;
+  title: string;
+}

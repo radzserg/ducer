@@ -103,13 +103,13 @@ export class Ducer<S extends StoryBag = {}> {
    */
   public make<N extends keyof S>(
     name: N,
-    args: ExtractInputParameter<S[N]>
+    args?: ExtractInputParameter<S[N]>
   ): N extends keyof S ? ExtractOutputParameter<S[N]> : never {
     const factory: Factory<any, any> = this.bag[name];
     if (!factory) {
       throw new Error(`Factory ${name} does not exist`);
     }
-    return factory(args, {});
+    return factory(args ?? {}, {});
   }
 }
 

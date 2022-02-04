@@ -1,5 +1,5 @@
 import { Ducer } from "../Ducer";
-import { User, UserInput } from "./testTypes";
+import { Article, ArticleInput, User, UserInput } from "./testTypes";
 
 describe("addFactory", () => {
   it("adds simple story to the bag", () => {
@@ -54,4 +54,43 @@ describe("addFactory", () => {
       createdAt: new Date("2022-02-02"),
     });
   });
+
+  it("adds simple story that can call another factory that has been defined", () => {
+    const producer: Ducer = new Ducer();
+    producer.addFactory(
+      "user",
+      (userData: Partial<UserInput>): User => {
+        return {
+          ...{
+            id: 123,
+            firstName: "John",
+            lastName: "Doe",
+            createdAt: new Date("2022-02-02"),
+          },
+          ...userData,
+        };
+      }
+    );
+    producer.addFactory(
+      "article",
+      (article: Partial<ArticleInput>): Article => {
+        const user = producer.make("user")
+        return {
+          ...{
+            id: 456,
+            userId: user.id,
+            title: "My article",
+          },
+          ...article,
+        };
+      }
+    );
+    const user = producer.make("article", {});
+    expect(user).toEqual({
+      id: 456,
+      userId: 123,
+      title: "My article",
+    });
+  });
+
 });
