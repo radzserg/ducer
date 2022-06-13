@@ -85,8 +85,8 @@ describe("addFactory", () => {
         };
       }
     );
-    const user = producer.make("article", {});
-    expect(user).toEqual({
+    const article = producer.make("article", {});
+    expect(article).toEqual({
       id: 456,
       userId: 123,
       title: "My article",
