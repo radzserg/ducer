@@ -3,19 +3,30 @@
   "version": "0.0.1",
   "description": "client agnostic data seeder library",
   "scripts": {
+    "build": "tsc",
     "test": "jest",
-    "prettify": "prettier --write --ignore-unknown src"
+    "test:types": "jest -c jest.config.tsd.js",
+    "prettify": "prettier --write --ignore-unknown src",
+    "pre-commit": "lint-staged",
+    "lint": "yarn eslint src/**/**.ts"
   },
   "keywords": [
     "seeder",
     "fixtures"
   ],
+  "lint-staged": {
+    "src/**/*.ts": [
+      "prettier --write --ignore-unknown",
+      "eslint"
+    ]
+  },
   "author": "radzserg@gmail.com",
   "license": "ISC",
   "devDependencies": {
     "@tsd/typescript": "^4.7.4",
     "@types/jest": "^27.4.0",
     "@types/node": "^17.0.13",
+    "eslint": "^8.20.0",
     "husky": "^8.0.1",
     "jest": "^27.4.7",
     "jest-runner-tsd": "^3.1.0",
