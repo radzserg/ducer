@@ -54,40 +54,42 @@ export class Ducer<S extends StoryBag = {}> {
     this.bag[name] = (
       args: {
         [Property in keyof M]: Partial<ExtractInputParameter<S[M[Property]]>>;
-      } &
-        {
-          [k in N]: ExtractInputParameter<F>;
-        }
+      } & {
+        [k in N]: ExtractInputParameter<F>;
+      }
     ) => {
       let promiseDeps: any[] = [];
       let nonPromiseDeps: any[] = [];
-      Object.entries(existingStoriesMap)
-        .forEach(([k, v]) => {
-          const depArgs = args[k];
-          // @ts-ignore
-          const result: any = this.make(v, depArgs);
-          if (result instanceof Promise) {
-            promiseDeps.push([k, result]);
-          } else {
-            nonPromiseDeps.push([k, result]);
-          }
-        });
+      Object.entries(existingStoriesMap).forEach(([k, v]) => {
+        const depArgs = args[k];
+        // @ts-ignore
+        const result: any = this.make(v, depArgs);
+        if (result instanceof Promise) {
+          promiseDeps.push([k, result]);
+        } else {
+          nonPromiseDeps.push([k, result]);
+        }
+      });
 
       if (promiseDeps.length) {
         return new Promise((resolve) => {
-          Promise.all(promiseDeps.map(([_, p]) => p)).then(resolvedDeps => {
+          Promise.all(promiseDeps.map(([_, p]) => p)).then((resolvedDeps) => {
             const deps = {
-              ...Object.fromEntries(promiseDeps.map(([k]) => [k, resolvedDeps.shift()])),
-              ...Object.fromEntries(nonPromiseDeps)
-            }
+              ...Object.fromEntries(
+                promiseDeps.map(([k]) => [k, resolvedDeps.shift()])
+              ),
+              ...Object.fromEntries(nonPromiseDeps),
+            };
             const result = factory(args[name], deps);
             if (!(result instanceof Promise)) {
-              throw new Error(`${name} factory must be defined as async function`)
+              throw new Error(
+                `${name} factory must be defined as async function`
+              );
             }
             result.then((r: any) => {
-              resolve(r)
-            })
-          })
+              resolve(r);
+            });
+          });
         });
       } else {
         // @ts-ignore

@@ -57,20 +57,17 @@ an article that should have an author.
 
 ```typescript
 const producer: Ducer = new Ducer();
-producer.addFactory(
-  "user",
-  (userData: Partial<UserInput>): User => {
-    return {
-      ...{
-        id: 123,
-        firstName: "John",
-        lastName: "Doe",
-        createdAt: new Date("2022-02-02"),
-      },
-      ...userData,
-    };
-  }
-);
+producer.addFactory("user", (userData: Partial<UserInput>): User => {
+  return {
+    ...{
+      id: 123,
+      firstName: "John",
+      lastName: "Doe",
+      createdAt: new Date("2022-02-02"),
+    },
+    ...userData,
+  };
+});
 producer.addParentFactory(
   "article",
   // we declare dependencies, where author is dependency name

@@ -42,10 +42,9 @@ export type AddSimpleFactory<
   Acc extends StoryBag,
   Name extends string,
   F
-> = Acc &
-  {
-    [k in Name]: F extends Factory<any, any, any> ? F : never;
-  };
+> = Acc & {
+  [k in Name]: F extends Factory<any, any, any> ? F : never;
+};
 
 export type AddParentFactory<
   Acc extends StoryBag,
@@ -60,18 +59,16 @@ export type AddParentFactory<
       >;
     }
   >
-> = Acc &
-  {
-    [k in Name]: Factory<
-      {
-        [Property in keyof ExistingFactoriesMap]: Partial<
-          ExtractInputParameter<Acc[ExistingFactoriesMap[Property]]>
-        >;
-      } &
-        {
-          [k in Name]: ExtractInputParameter<F>;
-        },
-      ReturnType<F>,
-      void
-    >;
-  };
+> = Acc & {
+  [k in Name]: Factory<
+    {
+      [Property in keyof ExistingFactoriesMap]: Partial<
+        ExtractInputParameter<Acc[ExistingFactoriesMap[Property]]>
+      >;
+    } & {
+      [k in Name]: ExtractInputParameter<F>;
+    },
+    ReturnType<F>,
+    void
+  >;
+};
