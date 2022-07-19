@@ -1,30 +1,31 @@
 import {
   AddParentFactory,
-  AddSimpleFactory,
+  AddFactory,
   ExistingStoriesMap,
   ExtractInputParameter,
   ExtractOutputParameter,
   Factory,
-  StoryBag
-} from './types'
+  StoryBag,
+  MaybePromiseValue,
+} from "./types";
 
 export class Ducer<S extends StoryBag = {}> {
-  public readonly bag: S = {} as S
+  public readonly bag: S = {} as S;
 
   /**
    * Adds factory
    * @param name - factory name
    * @param f - factory implementation
    */
-  public addFactory<N extends string, F extends Factory<any, any>> (
+  public addFactory<N extends string, F extends Factory>(
     name: N,
     f: F
-  ): asserts this is Ducer<AddSimpleFactory<S, N, F>> {
+  ): asserts this is Ducer<AddFactory<S, N, F>> {
     if (this.bag[name]) {
-      throw new Error(`Factory with name ${name} has been already defined`)
+      throw new Error(`Factory with name ${name} has been already defined`);
     }
     // @ts-ignore
-    this.bag[name] = f
+    this.bag[name] = f;
   }
 
   /**
@@ -43,13 +44,13 @@ export class Ducer<S extends StoryBag = {}> {
         [Property in keyof M]: ExtractOutputParameter<S[M[Property]]>;
       }
     >
-  > (
+  >(
     name: N,
     existingStoriesMap: M,
     factory: F
   ): asserts this is Ducer<AddParentFactory<S, N, M, F>> {
     if (this.bag[name]) {
-      throw new Error(`Factory with name ${name} has been already defined`)
+      throw new Error(`Factory with name ${name} has been already defined`);
     }
     // @ts-ignore
     this.bag[name] = (
@@ -60,18 +61,18 @@ export class Ducer<S extends StoryBag = {}> {
           [k in N]: ExtractInputParameter<F>;
         }
     ) => {
-      const promiseDeps: any[] = []
-      const nonPromiseDeps: any[] = []
+      const promiseDeps: any[] = [];
+      const nonPromiseDeps: any[] = [];
       Object.entries(existingStoriesMap).forEach(([k, v]) => {
-        const depArgs = args[k]
+        const depArgs = args[k];
         // @ts-ignore
-        const result: any = this.make(v, depArgs)
+        const result: any = this.make(v, depArgs);
         if (result instanceof Promise) {
-          promiseDeps.push([k, result])
+          promiseDeps.push([k, result]);
         } else {
-          nonPromiseDeps.push([k, result])
+          nonPromiseDeps.push([k, result]);
         }
-      })
+      });
 
       if (promiseDeps.length) {
         return new Promise((resolve) => {
@@ -81,25 +82,25 @@ export class Ducer<S extends StoryBag = {}> {
                 ...Object.fromEntries(
                   promiseDeps.map(([k]) => [k, resolvedDeps.shift()])
                 ),
-                ...Object.fromEntries(nonPromiseDeps)
-              }
-              const result = factory(args[name], deps)
+                ...Object.fromEntries(nonPromiseDeps),
+              };
+              const result = factory(args[name], deps);
               if (!(result instanceof Promise)) {
                 throw new Error(
                   `${name} factory must be defined as async function`
-                )
+                );
               }
               result.then((r: any) => {
-                resolve(r)
-              })
+                resolve(r);
+              });
             }
-          )
-        })
+          );
+        });
       } else {
         // @ts-ignore
-        return factory(args[name], Object.fromEntries(nonPromiseDeps))
+        return factory(args[name], Object.fromEntries(nonPromiseDeps));
       }
-    }
+    };
   }
 
   /**
@@ -107,14 +108,30 @@ export class Ducer<S extends StoryBag = {}> {
    * @param name
    * @param args
    */
-  public make<N extends keyof S> (
+  public make<N extends keyof S>(
     name: N,
     args?: ExtractInputParameter<S[N]>
-  ): N extends keyof S ? ExtractOutputParameter<S[N]> : never {
-    const factory: Factory<any, any> = this.bag[name]
+  ): N extends keyof S
+    ? ExtractOutputParameter<S[N]> extends PromiseLike<infer U>
+      ? Promise<{ [n in N]: U }>
+      : { [n in N]: ExtractOutputParameter<S[N]> }
+    : never {
+    const factory: Factory = this.bag[name];
     if (!factory) {
-      throw new Error(`Factory ${name} does not exist`)
+      throw new Error(`Factory ${name} does not exist`);
     }
-    return factory(args ?? {}, {})
+    const result = factory(args ?? {}, {});
+    if (result instanceof Promise) {
+      // @ts-ignore
+      return new Promise((resolve) => {
+        result.then((resolvedResult) => {
+          // @ts-ignore
+          resolve({ [name]: resolvedResult });
+        });
+      });
+    } else {
+      // @ts-ignore
+      return { [name]: result };
+    }
   }
 }
