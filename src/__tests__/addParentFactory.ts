@@ -1,25 +1,25 @@
-import { Ducer } from "../Ducer";
-import { PaidProjectInput, User, UserInput } from "./testTypes";
+import { Ducer } from '../Ducer'
+import { PaidProjectInput, User, UserInput } from './testTypes'
 
 describe(Ducer.name, () => {
-  it("adds simple parent factory", () => {
-    const producer: Ducer = new Ducer();
-    producer.addFactory("user", (userData: Partial<UserInput>): User => {
+  it('adds simple parent factory', () => {
+    const producer: Ducer = new Ducer()
+    producer.addFactory('user', (userData: Partial<UserInput>): User => {
       return {
         ...{
           id: 123,
-          firstName: "John",
-          lastName: "Doe",
-          createdAt: new Date("2022-02-02"),
+          firstName: 'John',
+          lastName: 'Doe',
+          createdAt: new Date('2022-02-02')
         },
-        ...userData,
-      };
-    });
+        ...userData
+      }
+    })
     producer.addParentFactory(
-      "paidProject",
+      'paidProject',
       {
-        contractor: "user",
-        client: "user",
+        contractor: 'user',
+        client: 'user'
       },
       (
         paidProject: Partial<PaidProjectInput>,
@@ -31,60 +31,60 @@ describe(Ducer.name, () => {
           paidProject: {
             ...{
               id: 456,
-              title: "Generated title",
+              title: 'Generated title'
             },
-            ...paidProject,
-          },
-        };
+            ...paidProject
+          }
+        }
       }
-    );
+    )
 
-    const { client, contractor, paidProject } = producer.make("paidProject", {
-      contractor: { firstName: "John", lastName: "Doe" },
-      client: { firstName: "Kate", lastName: "Toms" },
+    const { client, contractor, paidProject } = producer.make('paidProject', {
+      contractor: { firstName: 'John', lastName: 'Doe' },
+      client: { firstName: 'Kate', lastName: 'Toms' },
       paidProject: {
-        title: "My Project",
-      },
-    });
+        title: 'My Project'
+      }
+    })
     expect(paidProject).toEqual({
       id: 456,
-      title: "My Project",
-    });
+      title: 'My Project'
+    })
     expect(contractor).toEqual({
       id: 123,
-      firstName: "John",
-      lastName: "Doe",
-      createdAt: new Date("2022-02-02"),
-    });
+      firstName: 'John',
+      lastName: 'Doe',
+      createdAt: new Date('2022-02-02')
+    })
     expect(client).toEqual({
       id: 123,
-      firstName: "Kate",
-      lastName: "Toms",
-      createdAt: new Date("2022-02-02"),
-    });
-  });
+      firstName: 'Kate',
+      lastName: 'Toms',
+      createdAt: new Date('2022-02-02')
+    })
+  })
 
-  it("adds async parent factory", async () => {
-    const producer: Ducer = new Ducer();
+  it('adds async parent factory', async () => {
+    const producer: Ducer = new Ducer()
     producer.addFactory(
-      "user",
+      'user',
       async (userData: Partial<UserInput>): Promise<User> => {
         return {
           ...{
             id: 123,
-            firstName: "John",
-            lastName: "Doe",
-            createdAt: new Date("2022-02-02"),
+            firstName: 'John',
+            lastName: 'Doe',
+            createdAt: new Date('2022-02-02')
           },
-          ...userData,
-        };
+          ...userData
+        }
       }
-    );
+    )
     producer.addParentFactory(
-      "paidProject",
+      'paidProject',
       {
-        contractor: "user",
-        client: "user",
+        contractor: 'user',
+        client: 'user'
       },
       async (
         paidProject: Partial<PaidProjectInput>,
@@ -96,39 +96,39 @@ describe(Ducer.name, () => {
           paidProject: {
             ...{
               id: 456,
-              title: "Generated title",
+              title: 'Generated title'
             },
-            ...paidProject,
-          },
-        };
+            ...paidProject
+          }
+        }
       }
-    );
+    )
 
     const { client, contractor, paidProject } = await producer.make(
-      "paidProject",
+      'paidProject',
       {
-        contractor: { firstName: "John", lastName: "Doe" },
-        client: { firstName: "Kate", lastName: "Toms" },
+        contractor: { firstName: 'John', lastName: 'Doe' },
+        client: { firstName: 'Kate', lastName: 'Toms' },
         paidProject: {
-          title: "My Project",
-        },
+          title: 'My Project'
+        }
       }
-    );
+    )
     expect(paidProject).toEqual({
       id: 456,
-      title: "My Project",
-    });
+      title: 'My Project'
+    })
     expect(contractor).toEqual({
       id: 123,
-      firstName: "John",
-      lastName: "Doe",
-      createdAt: new Date("2022-02-02"),
-    });
+      firstName: 'John',
+      lastName: 'Doe',
+      createdAt: new Date('2022-02-02')
+    })
     expect(client).toEqual({
       id: 123,
-      firstName: "Kate",
-      lastName: "Toms",
-      createdAt: new Date("2022-02-02"),
-    });
-  });
-});
+      firstName: 'Kate',
+      lastName: 'Toms',
+      createdAt: new Date('2022-02-02')
+    })
+  })
+})

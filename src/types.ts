@@ -1,8 +1,8 @@
+export type Factory<I, O, D = {}> = (input: Partial<I>, dependencies: D) => O;
+
 export type StoryBag = {
   [name in string]: Factory<any, any, any>;
 };
-
-export type Factory<I, O, D = {}> = (input: Partial<I>, dependencies: D) => O;
 
 export type ExtractInputParameter<Type> = Type extends Factory<
   infer X,
