@@ -6,7 +6,6 @@ import {
   ExtractOutputParameter,
   Factory,
   StoryBag,
-  MaybePromiseValue,
 } from "./types";
 
 export class Ducer<S extends StoryBag = {}> {
@@ -17,9 +16,20 @@ export class Ducer<S extends StoryBag = {}> {
    * @param name - factory name
    * @param f - factory implementation
    */
-  public addFactory<N extends string, F extends Factory>(
+  public addFactory<
+    N extends string,
+    F extends Factory<
+      any,
+      any,
+      {
+        [Property in keyof M]: ExtractOutputParameter<S[M[Property]]>;
+      }
+    >,
+    M extends ExistingStoriesMap<S>
+  >(
     name: N,
-    f: F
+    f: F,
+    dependencies?: M
   ): asserts this is Ducer<AddFactory<S, N, F>> {
     if (this.bag[name]) {
       throw new Error(`Factory with name ${name} has been already defined`);
@@ -108,30 +118,25 @@ export class Ducer<S extends StoryBag = {}> {
    * @param name
    * @param args
    */
-  public make<N extends keyof S>(
+  public async make<N extends keyof S>(
     name: N,
     args?: ExtractInputParameter<S[N]>
-  ): N extends keyof S
-    ? ExtractOutputParameter<S[N]> extends PromiseLike<infer U>
-      ? Promise<{ [n in N]: U }>
-      : { [n in N]: ExtractOutputParameter<S[N]> }
-    : never {
+  ): Promise<
+    N extends keyof S ? { [n in N]: ExtractOutputParameter<S[N]> } : never
+  > {
     const factory: Factory = this.bag[name];
     if (!factory) {
       throw new Error(`Factory ${name} does not exist`);
     }
     const result = factory(args ?? {}, {});
-    if (result instanceof Promise) {
-      // @ts-ignore
-      return new Promise((resolve) => {
-        result.then((resolvedResult) => {
-          // @ts-ignore
-          resolve({ [name]: resolvedResult });
-        });
-      });
-    } else {
-      // @ts-ignore
-      return { [name]: result };
+    if (!(result instanceof Promise)) {
+      throw new Error("Factory must be async functions");
     }
+    return new Promise((resolve) => {
+      result.then((resolvedResult) => {
+        // @ts-ignore
+        resolve({ [name]: resolvedResult });
+      });
+    });
   }
 }

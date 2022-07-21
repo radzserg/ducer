@@ -1,7 +1,7 @@
 export type Factory<Input = any, Output = any, Dependencies = {}> = (
   input: Partial<Input>,
   dependencies: Dependencies
-) => Output;
+) => Promise<Output>;
 
 export type StoryBag = {
   [name in string]: Factory;
@@ -11,11 +11,13 @@ export type ExtractInputParameter<F> = F extends Factory<infer X, any, any>
   ? Partial<X>
   : never;
 
-export type ExtractOutputParameter<F> = F extends Factory<any, infer X, any>
+export type ExtractOutputParameter<Type> = Type extends Factory<
+  any,
+  infer X,
+  any
+>
   ? X
   : never;
-
-export type MaybePromiseValue<V> = V extends PromiseLike<infer U> ? U : V;
 
 export type AddFactory<Acc extends StoryBag, Name extends string, F> = Acc &
   {
