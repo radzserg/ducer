@@ -106,12 +106,11 @@ export class Ducer<ExistingFactories extends Factories = {}> {
 
   /**
    * Calls factory
-   * @param name
-   * @param args
    */
   public async make<N extends keyof ExistingFactories>(
     name: N,
-    args?: ExtractInputParameter<ExistingFactories[N]>
+    input?: Partial<Parameters<ExistingFactories[N]>[0]>,
+    dependenciesInput?: Parameters<ExistingFactories[N]>[1]
   ): Promise<
     N extends keyof ExistingFactories
       ? { [n in N]: ExtractOutputParameter<ExistingFactories[N]> }
@@ -122,7 +121,7 @@ export class Ducer<ExistingFactories extends Factories = {}> {
       throw new Error(`Factory ${name} does not exist`);
     }
     return new Promise((resolve) => {
-      factory(args ?? {}).then((resolvedResult) => {
+      factory(input ?? {}, dependenciesInput ?? {}).then((resolvedResult) => {
         // @ts-ignore
         resolve({ [name]: resolvedResult });
       });

@@ -119,10 +119,20 @@ describe("addFactory with dependencies", () => {
     const { client, contractor, paidProject } = await producer.make(
       "paidProject",
       {
-        contractor: { firstName: "John", lastName: "Doe" },
-        client: { firstName: "Kate", lastName: "Toms" },
-        paidProject: {
           title: "My Project",
+      },
+      {
+        contractor: {
+          id: 123,
+          firstName: "John",
+          lastName: "Doe",
+          createdAt: new Date(),
+        },
+        client: {
+          id: 123,
+          firstName: "John",
+          lastName: "Doe",
+          createdAt: new Date(),
         },
       }
     );
