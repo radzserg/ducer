@@ -1,41 +1,39 @@
 import {
-  AddParentFactory,
   AddFactory,
-  ExistingStoriesMap,
+  FactoryDependenciesMap,
   ExtractInputParameter,
   ExtractOutputParameter,
   Factory,
-  StoryBag,
+  Factories,
 } from "./types";
 
-export class Ducer<S extends StoryBag = {}> {
-  public readonly bag: S = {} as S;
+export class Ducer<ExistingFactories extends Factories = {}> {
+  public readonly factories: ExistingFactories = {} as ExistingFactories;
 
   /**
    * Adds factory
-   * @param name - factory name
-   * @param f - factory implementation
    */
   public addFactory<
-    N extends string,
-    F extends Factory<
+    Name extends string,
+    NewFactory extends Factory<
       any,
       any,
-      {
-        [Property in keyof M]: ExtractOutputParameter<S[M[Property]]>;
-      }
+      ExistingFactories,
+      NewFactoryDependenciesMap
     >,
-    M extends ExistingStoriesMap<S>
+    NewFactoryDependenciesMap extends FactoryDependenciesMap<ExistingFactories> = {}
   >(
-    name: N,
-    f: F,
-    dependencies?: M
-  ): asserts this is Ducer<AddFactory<S, N, F>> {
-    if (this.bag[name]) {
+    name: Name,
+    f: NewFactory,
+    dependencies?: NewFactoryDependenciesMap
+  ): asserts this is Ducer<
+    AddFactory<ExistingFactories, Name, NewFactory, NewFactoryDependenciesMap>
+  > {
+    if (this.factories[name]) {
       throw new Error(`Factory with name ${name} has been already defined`);
     }
     // @ts-ignore
-    this.bag[name] = f;
+    this.factories[name] = f;
   }
 
   /**
@@ -46,26 +44,19 @@ export class Ducer<S extends StoryBag = {}> {
    */
   public addParentFactory<
     N extends string,
-    M extends ExistingStoriesMap<S>,
-    F extends Factory<
-      any,
-      any,
-      {
-        [Property in keyof M]: ExtractOutputParameter<S[M[Property]]>;
-      }
-    >
-  >(
-    name: N,
-    existingStoriesMap: M,
-    factory: F
-  ): asserts this is Ducer<AddParentFactory<S, N, M, F>> {
-    if (this.bag[name]) {
+    M extends FactoryDependenciesMap<ExistingFactories>,
+    F extends Factory
+  >(name: N, existingStoriesMap: M, factory: F) {
+    // : asserts this is Ducer<AddParentFactory<ExistingFactories, N, M, F>> {
+    if (this.factories[name]) {
       throw new Error(`Factory with name ${name} has been already defined`);
     }
     // @ts-ignore
-    this.bag[name] = (
+    this.factories[name] = (
       args: {
-        [Property in keyof M]: Partial<ExtractInputParameter<S[M[Property]]>>;
+        [Property in keyof M]: Partial<
+          ExtractInputParameter<ExistingFactories[M[Property]]>
+        >;
       } &
         {
           [k in N]: ExtractInputParameter<F>;
@@ -118,22 +109,20 @@ export class Ducer<S extends StoryBag = {}> {
    * @param name
    * @param args
    */
-  public async make<N extends keyof S>(
+  public async make<N extends keyof ExistingFactories>(
     name: N,
-    args?: ExtractInputParameter<S[N]>
+    args?: ExtractInputParameter<ExistingFactories[N]>
   ): Promise<
-    N extends keyof S ? { [n in N]: ExtractOutputParameter<S[N]> } : never
+    N extends keyof ExistingFactories
+      ? { [n in N]: ExtractOutputParameter<ExistingFactories[N]> }
+      : never
   > {
-    const factory: Factory = this.bag[name];
+    const factory: Factory = this.factories[name];
     if (!factory) {
       throw new Error(`Factory ${name} does not exist`);
     }
-    const result = factory(args ?? {}, {});
-    if (!(result instanceof Promise)) {
-      throw new Error("Factory must be async functions");
-    }
     return new Promise((resolve) => {
-      result.then((resolvedResult) => {
+      factory(args ?? {}).then((resolvedResult) => {
         // @ts-ignore
         resolve({ [name]: resolvedResult });
       });
