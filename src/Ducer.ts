@@ -113,7 +113,10 @@ export class Ducer<ExistingFactories extends Factories = {}> {
     dependenciesInput?: Parameters<ExistingFactories[N]>[1]
   ): Promise<
     N extends keyof ExistingFactories
-      ? { [n in N]: ExtractOutputParameter<ExistingFactories[N]> }
+      ? { [n in N]: Awaited<ReturnType<ExistingFactories[N]>> } &
+          (Parameters<ExistingFactories[N]>[1] extends void
+            ? {}
+            : Parameters<ExistingFactories[N]>[1])
       : never
   > {
     const factory: Factory = this.factories[name];

@@ -32,6 +32,7 @@ export type ExtractOutputParameter<F> = F extends Factory<any, infer X>
   ? Awaited<Promise<PromiseLike<X>>>
   : never;
 
+
 export type AddFactory<
   ExistingFactories extends Factories,
   Name extends string,

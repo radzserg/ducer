@@ -2,6 +2,7 @@ import { Ducer } from "../Ducer";
 import {
   Article,
   ArticleInput,
+  PaidProject,
   PaidProjectInput,
   User,
   UserInput,
@@ -24,7 +25,7 @@ describe("addFactory", () => {
         };
       }
     );
-    const { user } = await producer.make("user", {
+    const user = await producer.make("user", {
       firstName: "Tom",
       lastName: "Lee",
     });
@@ -76,7 +77,7 @@ describe("addFactory", () => {
 });
 
 describe("addFactory with dependencies", () => {
-  it("adds simple parent factory", () => {
+  it("adds simple parent factory", async () => {
     const producer: Ducer = new Ducer();
     producer.addFactory(
       "user",
@@ -98,17 +99,25 @@ describe("addFactory with dependencies", () => {
         paidProject: Partial<PaidProjectInput>,
         { client, contractor }: { client: User; contractor: User }
       ) => {
+        // return {
+        //   client,
+        //   contractor,
+        //   paidProject: {
+        //     ...{
+        //       id: 456,
+        //       title: "Generated title",
+        //     },
+        //     ...paidProject,
+        //   },
+        // };
+
         return {
-          client,
-          contractor,
-          paidProject: {
-            ...{
-              id: 456,
-              title: "Generated title",
-            },
-            ...paidProject,
+          ...{
+            id: 456,
+            title: "Generated title",
           },
-        };
+          ...paidProject,
+        } as PaidProject;
       },
       {
         contractor: "user",
@@ -116,10 +125,11 @@ describe("addFactory with dependencies", () => {
       }
     );
 
+    const r = await producer.make("paidProject");
     const { client, contractor, paidProject } = await producer.make(
       "paidProject",
       {
-          title: "My Project",
+        title: "My Project",
       },
       {
         contractor: {
@@ -136,21 +146,22 @@ describe("addFactory with dependencies", () => {
         },
       }
     );
-  //   expect(paidProject).toEqual({
-  //     id: 456,
-  //     title: "My Project",
-  //   });
-  //   expect(contractor).toEqual({
-  //     id: 123,
-  //     firstName: "John",
-  //     lastName: "Doe",
-  //     createdAt: new Date("2022-02-02"),
-  //   });
-  //   expect(client).toEqual({
-  //     id: 123,
-  //     firstName: "Kate",
-  //     lastName: "Toms",
-  //     createdAt: new Date("2022-02-02"),
-  //   });
-  // });
+    //   expect(paidProject).toEqual({
+    //     id: 456,
+    //     title: "My Project",
+    //   });
+    //   expect(contractor).toEqual({
+    //     id: 123,
+    //     firstName: "John",
+    //     lastName: "Doe",
+    //     createdAt: new Date("2022-02-02"),
+    //   });
+    //   expect(client).toEqual({
+    //     id: 123,
+    //     firstName: "Kate",
+    //     lastName: "Toms",
+    //     createdAt: new Date("2022-02-02"),
+    //   });
+    // });
+  });
 });
