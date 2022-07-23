@@ -5,6 +5,7 @@ import {
   ExtractOutputParameter,
   Factory,
   Factories,
+  FactoryReturnValueWithDeps,
 } from "./types";
 
 export class Ducer<ExistingFactories extends Factories = {}> {
@@ -35,6 +36,29 @@ export class Ducer<ExistingFactories extends Factories = {}> {
     // @ts-ignore
     this.factories[name] = f;
   }
+
+  public createFactory<
+    Name extends string,
+    NewFactory extends Factory<
+      any,
+      any,
+      ExistingFactories,
+      NewFactoryDependenciesMap
+    >,
+    NewFactoryDependenciesMap extends FactoryDependenciesMap<ExistingFactories> = {}
+  >(
+    name: Name,
+    f: NewFactory,
+    dependencies?: NewFactoryDependenciesMap
+  ): asserts this is Ducer &
+    {
+      [k in Name]: FactoryReturnValueWithDeps<
+        Name,
+        NewFactory,
+        ExistingFactories,
+        NewFactoryDependenciesMap
+      >;
+    } {}
 
   /**
    * Adds parent factory

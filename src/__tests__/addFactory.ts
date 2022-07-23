@@ -10,8 +10,8 @@ import {
 
 describe("addFactory", () => {
   it("adds simple story to the bag", async () => {
-    const producer: Ducer = new Ducer();
-    producer.addFactory(
+    const iMake: Ducer = new Ducer();
+    iMake.createFactory(
       "user",
       async (userData: Partial<UserInput>): Promise<User> => {
         return {
@@ -25,7 +25,7 @@ describe("addFactory", () => {
         };
       }
     );
-    const user = await producer.make("user", {
+    const user = await iMake.user({
       firstName: "Tom",
       lastName: "Lee",
     });
@@ -38,8 +38,8 @@ describe("addFactory", () => {
   });
 
   it("adds simple story that can call another factory that has been defined", async () => {
-    const producer: Ducer = new Ducer();
-    producer.addFactory(
+    const iMake: Ducer = new Ducer();
+    iMake.addFactory(
       "user",
       async (userData: Partial<UserInput>): Promise<User> => {
         return {
@@ -53,10 +53,10 @@ describe("addFactory", () => {
         };
       }
     );
-    producer.addFactory(
+    iMake.addFactory(
       "article",
       async (article: Partial<ArticleInput>): Promise<Article> => {
-        const { user } = await producer.make("user");
+        const { user } = await iMake.make("user");
         return {
           ...{
             id: 456,
@@ -67,7 +67,7 @@ describe("addFactory", () => {
         };
       }
     );
-    const { article } = await producer.make("article", {});
+    const { article } = await iMake.make("article", {});
     expect(article).toEqual({
       id: 456,
       userId: 123,
@@ -93,7 +93,7 @@ describe("addFactory with dependencies", () => {
         };
       }
     );
-    producer.addFactory(
+    producer.createFactory(
       "paidProject",
       async (
         paidProject: Partial<PaidProjectInput>,
@@ -122,6 +122,25 @@ describe("addFactory with dependencies", () => {
       {
         contractor: "user",
         client: "user",
+      }
+    );
+    const p = await producer.paidProject(
+      {
+        title: "My Project",
+      },
+      {
+        contractor: {
+          id: 123,
+          firstName: "John",
+          lastName: "Doe",
+          createdAt: new Date(),
+        },
+        client: {
+          id: 123,
+          firstName: "John",
+          lastName: "Doe",
+          createdAt: new Date(),
+        },
       }
     );
 

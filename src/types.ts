@@ -1,3 +1,10 @@
+import {
+  PaidProject,
+  PaidProjectInput,
+  User,
+  UserInput,
+} from "./__tests__/testTypes";
+
 export type Factory<
   Input = any,
   Output extends Promise<any> = Promise<any>,
@@ -32,7 +39,6 @@ export type ExtractOutputParameter<F> = F extends Factory<any, infer X>
   ? Awaited<Promise<PromiseLike<X>>>
   : never;
 
-
 export type AddFactory<
   ExistingFactories extends Factories,
   Name extends string,
@@ -43,17 +49,47 @@ export type AddFactory<
     [k in Name]: NewFactory;
   };
 
-// type UserFactory = Factory<Partial<UserInput>, Promise<User>>;
-//
-// type PaidProjectFactory = Factory<
-//   Partial<PaidProjectInput>,
-//   Promise<{ paidProject: PaidProject; contractor: User }>,
-//   {
-//     user: UserFactory;
-//   },
-//   { contractor: "user"; client: "user" }
-// >;
-//
+type UserFactory = Factory<Partial<UserInput>, Promise<User>>;
+
+type PaidProjectFactory = Factory<
+  Partial<PaidProjectInput>,
+  Promise<PaidProject>,
+  {
+    user: UserFactory;
+  },
+  { contractor: "user"; client: "user" }
+>;
+
+export type FactoryReturnValueWithDeps<
+  N extends string,
+  F extends Factory<any, any, ExistingFactories, NewDependencies>,
+  ExistingFactories extends Factories = any,
+  NewDependencies extends FactoryDependenciesMap<ExistingFactories> = any
+> = Factory<
+  ExtractInputParameter<F, ExistingFactories, NewDependencies>,
+  Promise<
+    {
+      [n in N]: Awaited<ReturnType<F>>;
+    } &
+      {
+        [Property in keyof NewDependencies]: Awaited<
+          ReturnType<ExistingFactories[NewDependencies[Property]]>
+        >;
+      }
+  >,
+  ExistingFactories,
+  NewDependencies
+>;
+
+type T1 = FactoryReturnValueWithDeps<
+  "p",
+  PaidProjectFactory,
+  {
+    user: UserFactory;
+  },
+  { contractor: "user"; client: "user" }
+>;
+
 // let userFactory: UserFactory = ({} as unknown) as any;
 // const user = await userFactory(
 //   {
