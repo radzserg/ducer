@@ -1,20 +1,26 @@
 import {
-  AddFactory,
+  AddFactoryWithDeps,
   FactoryDependenciesMap,
   ExtractInputParameter,
   ExtractOutputParameter,
   Factory,
   Factories,
   FactoryReturnValueWithDeps,
+  UnwrapDucer,
+  AddFactory,
 } from "./types";
+import * as assert from "assert";
 
 export class Ducer<ExistingFactories extends Factories = {}> {
   public readonly factories: ExistingFactories = {} as ExistingFactories;
 
-  /**
-   * Adds factory
-   */
-  public addFactory<
+  addFactory<Name extends string, NewFactory extends (input: any) => any>(
+    name: Name,
+    f: NewFactory
+  ): asserts this is UnwrapDucer<
+    ExistingFactories & AddFactory<ExistingFactories, Name, NewFactory>
+  >;
+  addFactory<
     Name extends string,
     NewFactory extends Factory<
       any,
@@ -22,43 +28,72 @@ export class Ducer<ExistingFactories extends Factories = {}> {
       ExistingFactories,
       NewFactoryDependenciesMap
     >,
-    NewFactoryDependenciesMap extends FactoryDependenciesMap<ExistingFactories> = {}
+    NewFactoryDependenciesMap extends FactoryDependenciesMap<ExistingFactories>
   >(
     name: Name,
     f: NewFactory,
     dependencies?: NewFactoryDependenciesMap
-  ): asserts this is Ducer<
-    AddFactory<ExistingFactories, Name, NewFactory, NewFactoryDependenciesMap>
-  > {
-    if (this.factories[name]) {
-      throw new Error(`Factory with name ${name} has been already defined`);
-    }
-    // @ts-ignore
-    this.factories[name] = f;
-  }
-
-  public createFactory<
-    Name extends string,
-    NewFactory extends Factory<
-      any,
-      any,
-      ExistingFactories,
-      NewFactoryDependenciesMap
-    >,
-    NewFactoryDependenciesMap extends FactoryDependenciesMap<ExistingFactories> = {}
-  >(
-    name: Name,
-    f: NewFactory,
-    dependencies?: NewFactoryDependenciesMap
-  ): asserts this is Ducer &
-    {
-      [k in Name]: FactoryReturnValueWithDeps<
+  ): asserts this is UnwrapDucer<
+    ExistingFactories &
+      AddFactoryWithDeps<
+        ExistingFactories,
         Name,
         NewFactory,
-        ExistingFactories,
         NewFactoryDependenciesMap
-      >;
-    } {}
+      >
+  >;
+  addFactory(name: any, f: any, dependencies?: any): number {
+    throw new Error("Method not implemented.");
+  }
+
+  // /**
+  //  * Adds factory
+  //  */
+  // public addFactory<
+  //   Name extends string,
+  //   NewFactory extends Factory<
+  //     any,
+  //     any,
+  //     ExistingFactories,
+  //     NewFactoryDependenciesMap
+  //   >,
+  //   NewFactoryDependenciesMap extends FactoryDependenciesMap<ExistingFactories> = {}
+  // >(
+  //   name: Name,
+  //   f: NewFactory,
+  //   dependencies?: NewFactoryDependenciesMap
+  // ): asserts this is Ducer<
+  //   AddFactory<ExistingFactories, Name, NewFactory, NewFactoryDependenciesMap>
+  // > {
+  //   if (this.factories[name]) {
+  //     throw new Error(`Factory with name ${name} has been already defined`);
+  //   }
+  //   // @ts-ignore
+  //   this.factories[name] = f;
+  // }
+
+  // public createFactory<
+  //   Name extends string,
+  //   NewFactory extends Factory<
+  //     any,
+  //     any,
+  //     ExistingFactories,
+  //     NewFactoryDependenciesMap
+  //   >,
+  //   NewFactoryDependenciesMap extends FactoryDependenciesMap<ExistingFactories> = {}
+  // >(
+  //   name: Name,
+  //   f: NewFactory,
+  //   dependencies?: NewFactoryDependenciesMap
+  // ): asserts this is Ducer &
+  //   {
+  //     [k in Name]: FactoryReturnValueWithDeps<
+  //       Name,
+  //       NewFactory,
+  //       ExistingFactories,
+  //       NewFactoryDependenciesMap
+  //     >;
+  //   } {}
 
   /**
    * Adds parent factory

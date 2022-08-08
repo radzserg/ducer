@@ -8,16 +8,18 @@ import {
 export type Factory<
   Input = any,
   Output extends Promise<any> = Promise<any>,
-  ExistingFactories extends Factories = any,
-  NewDependencies extends FactoryDependenciesMap<ExistingFactories> = any
-> = (
-  input: Input,
-  deps: {
-    [Property in keyof NewDependencies]: ExtractOutputParameter<
-      ExistingFactories[NewDependencies[Property]]
-    >;
-  }
-) => Output;
+  ExistingFactories extends Factories = {},
+  NewDependencies = void
+> = NewDependencies extends FactoryDependenciesMap<ExistingFactories>
+  ? (
+      input: Input,
+      deps: {
+        [Property in keyof NewDependencies]: ExtractOutputParameter<
+          ExistingFactories[NewDependencies[Property]]
+        >;
+      }
+    ) => Output
+  : (input: Input) => Output;
 
 export type Factories = {
   [name in string]: Factory;
@@ -27,26 +29,74 @@ export type FactoryDependenciesMap<ExistingFactories extends Factories> = {
   [x: string]: keyof ExistingFactories;
 };
 
-export type ExtractInputParameter<
-  F extends Factory<any, any, ExistingFactories, NewDependencies>,
-  ExistingFactories extends Factories = any,
-  NewDependencies extends FactoryDependenciesMap<ExistingFactories> = any
-> = F extends Factory<infer X, any, ExistingFactories, NewDependencies>
-  ? X
+export type ExtractInputParameter<F> = F extends (...args: any) => any
+  ? Parameters<F>[0]
   : never;
 
-export type ExtractOutputParameter<F> = F extends Factory<any, infer X>
-  ? Awaited<Promise<PromiseLike<X>>>
+export type ExtractOutputParameter<F> = F extends (...args: any) => any
+  ? Awaited<ReturnType<F>>
   : never;
 
-export type AddFactory<
+export type UnwrapDucer<ExistingFactories extends Factories> = {
+  addFactory<Name extends string, NewFactory extends Factory<any, any>>(
+    name: Name,
+    f: NewFactory
+  ): void;
+  addFactory<
+    Name extends string,
+    NewFactory extends Factory<
+      any,
+      any,
+      ExistingFactories,
+      NewFactoryDependenciesMap
+    >,
+    NewFactoryDependenciesMap extends FactoryDependenciesMap<ExistingFactories>
+  >(
+    name: Name,
+    f: NewFactory,
+    dependencies?: NewFactoryDependenciesMap
+  ): void;
+} & ExistingFactories;
+
+export type AddFactoryWithDeps<
   ExistingFactories extends Factories,
   Name extends string,
   NewFactory extends Factory<any, any, ExistingFactories, FactoryDependencies>,
   FactoryDependencies extends FactoryDependenciesMap<ExistingFactories> = {}
 > = ExistingFactories &
   {
-    [k in Name]: NewFactory;
+    [k in Name]: Factory<
+      ExtractInputParameter<NewFactory>,
+      Promise<
+        {
+          [n in Name]: Awaited<ReturnType<NewFactory>>;
+        } &
+          {
+            [Property in keyof FactoryDependencies]: Awaited<
+              ReturnType<ExistingFactories[FactoryDependencies[Property]]>
+            >;
+          }
+      >,
+      ExistingFactories,
+      FactoryDependencies
+    >;
+  };
+
+export type AddFactory<
+  ExistingFactories extends Factories,
+  Name extends string,
+  NewFactory extends Factory<any, any>
+> = ExistingFactories &
+  {
+    [k in Name]: Factory<
+      ExtractInputParameter<NewFactory>,
+      Promise<
+        {
+          [n in Name]: Awaited<ReturnType<NewFactory>>;
+        }
+      >,
+      ExistingFactories
+    >;
   };
 
 type UserFactory = Factory<Partial<UserInput>, Promise<User>>;
@@ -66,14 +116,14 @@ export type FactoryReturnValueWithDeps<
   ExistingFactories extends Factories = any,
   NewDependencies extends FactoryDependenciesMap<ExistingFactories> = any
 > = Factory<
-  ExtractInputParameter<F, ExistingFactories, NewDependencies>,
+  ExtractInputParameter<F>,
   Promise<
     {
       [n in N]: Awaited<ReturnType<F>>;
     } &
       {
-        [Property in keyof NewDependencies]: Awaited<
-          ReturnType<ExistingFactories[NewDependencies[Property]]>
+        [Property in keyof NewDependencies]: ExtractOutputParameter<
+          ExistingFactories[NewDependencies[Property]]
         >;
       }
   >,

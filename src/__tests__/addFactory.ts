@@ -11,7 +11,7 @@ import {
 describe("addFactory", () => {
   it("adds simple story to the bag", async () => {
     const iMake: Ducer = new Ducer();
-    iMake.createFactory(
+    iMake.addFactory(
       "user",
       async (userData: Partial<UserInput>): Promise<User> => {
         return {
@@ -56,7 +56,7 @@ describe("addFactory", () => {
     iMake.addFactory(
       "article",
       async (article: Partial<ArticleInput>): Promise<Article> => {
-        const { user } = await iMake.make("user");
+        const { user } = await iMake.user({});
         return {
           ...{
             id: 456,
@@ -67,7 +67,7 @@ describe("addFactory", () => {
         };
       }
     );
-    const { article } = await iMake.make("article", {});
+    const { article } = await iMake.article({});
     expect(article).toEqual({
       id: 456,
       userId: 123,
@@ -93,7 +93,7 @@ describe("addFactory with dependencies", () => {
         };
       }
     );
-    producer.createFactory(
+    producer.addFactory(
       "paidProject",
       async (
         paidProject: Partial<PaidProjectInput>,
