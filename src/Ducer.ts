@@ -10,15 +10,20 @@ import {
   AddFactory,
 } from "./types";
 import * as assert from "assert";
+import { User, UserInput } from "./__tests__/testTypes";
 
-export class Ducer<ExistingFactories extends Factories = {}> {
-  public readonly factories: ExistingFactories = {} as ExistingFactories;
+export class Ducer<
+  ExistingFactories extends Factories = {},
+  FormattedFactories extends Factories = {}
+> {
+  private readonly factories: ExistingFactories = {} as ExistingFactories;
 
   addFactory<Name extends string, NewFactory extends (input: any) => any>(
     name: Name,
     f: NewFactory
-  ): asserts this is UnwrapDucer<
-    ExistingFactories & AddFactory<ExistingFactories, Name, NewFactory>
+  ): asserts this is Ducer<ExistingFactories & { [k in Name]: NewFactory }> & UnwrapDucer<
+    // xistingFactories & { [k in Name]: NewFactory },
+    FormattedFactories & AddFactory<ExistingFactories, Name, NewFactory>
   >;
   addFactory<
     Name extends string,
@@ -33,15 +38,16 @@ export class Ducer<ExistingFactories extends Factories = {}> {
     name: Name,
     f: NewFactory,
     dependencies?: NewFactoryDependenciesMap
-  ): asserts this is UnwrapDucer<
-    ExistingFactories &
-      AddFactoryWithDeps<
-        ExistingFactories,
-        Name,
-        NewFactory,
-        NewFactoryDependenciesMap
-      >
-  >;
+  ): asserts this is Ducer<ExistingFactories & { [k in Name]: NewFactory }> &
+    UnwrapDucer<
+      FormattedFactories &
+        AddFactoryWithDeps<
+          ExistingFactories,
+          Name,
+          NewFactory,
+          NewFactoryDependenciesMap
+        >
+    >;
   addFactory(name: any, f: any, dependencies?: any): number {
     throw new Error("Method not implemented.");
   }
@@ -144,6 +150,7 @@ export class Ducer<ExistingFactories extends Factories = {}> {
                 ),
                 ...Object.fromEntries(nonPromiseDeps),
               };
+              // @ts-ignore
               const result = factory(args[name], deps);
               if (!(result instanceof Promise)) {
                 throw new Error(
@@ -163,30 +170,31 @@ export class Ducer<ExistingFactories extends Factories = {}> {
     };
   }
 
-  /**
-   * Calls factory
-   */
-  public async make<N extends keyof ExistingFactories>(
-    name: N,
-    input?: Partial<Parameters<ExistingFactories[N]>[0]>,
-    dependenciesInput?: Parameters<ExistingFactories[N]>[1]
-  ): Promise<
-    N extends keyof ExistingFactories
-      ? { [n in N]: Awaited<ReturnType<ExistingFactories[N]>> } &
-          (Parameters<ExistingFactories[N]>[1] extends void
-            ? {}
-            : Parameters<ExistingFactories[N]>[1])
-      : never
-  > {
-    const factory: Factory = this.factories[name];
-    if (!factory) {
-      throw new Error(`Factory ${name} does not exist`);
-    }
-    return new Promise((resolve) => {
-      factory(input ?? {}, dependenciesInput ?? {}).then((resolvedResult) => {
-        // @ts-ignore
-        resolve({ [name]: resolvedResult });
-      });
-    });
-  }
+  // /**
+  //  * Calls factory
+  //  */
+  // public async make<N extends keyof ExistingFactories>(
+  //   name: N,
+  //   input?: Partial<Parameters<ExistingFactories[N]>[0]>,
+  //   dependenciesInput?: Parameters<ExistingFactories[N]>[1]
+  // ): Promise<
+  //   N extends keyof ExistingFactories
+  //     ? { [n in N]: Awaited<ReturnType<ExistingFactories[N]>> } &
+  //         (Parameters<ExistingFactories[N]>[1] extends void
+  //           ? {}
+  //           : Parameters<ExistingFactories[N]>[1])
+  //     : never
+  // > {
+  //   const factory: Factory = this.factories[name];
+  //   if (!factory) {
+  //     throw new Error(`Factory ${name} does not exist`);
+  //   }
+  //   return new Promise((resolve) => {
+  //     // @ts-ignore
+  //     factory(input ?? {}, dependenciesInput ?? {}).then((resolvedResult) => {
+  //       // @ts-ignore
+  //       resolve({ [name]: resolvedResult });
+  //     });
+  //   });
+  // }
 }

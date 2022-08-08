@@ -124,6 +124,7 @@ describe("addFactory with dependencies", () => {
         client: "user",
       }
     );
+
     const p = await producer.paidProject(
       {
         title: "My Project",

@@ -37,26 +37,28 @@ export type ExtractOutputParameter<F> = F extends (...args: any) => any
   ? Awaited<ReturnType<F>>
   : never;
 
-export type UnwrapDucer<ExistingFactories extends Factories> = {
-  addFactory<Name extends string, NewFactory extends Factory<any, any>>(
-    name: Name,
-    f: NewFactory
-  ): void;
-  addFactory<
-    Name extends string,
-    NewFactory extends Factory<
-      any,
-      any,
-      ExistingFactories,
-      NewFactoryDependenciesMap
-    >,
-    NewFactoryDependenciesMap extends FactoryDependenciesMap<ExistingFactories>
-  >(
-    name: Name,
-    f: NewFactory,
-    dependencies?: NewFactoryDependenciesMap
-  ): void;
-} & ExistingFactories;
+export type UnwrapDucer<
+  FormattedFactories extends Factories = {}
+> = {
+  // addFactory<Name extends string, NewFactory extends Factory<any, any>>(
+  //   name: Name,
+  //   f: NewFactory
+  // ): void;
+  // addFactory<
+  //   Name extends string,
+  //   NewFactory extends Factory<
+  //     any,
+  //     any,
+  //     ExistingFactories,
+  //     NewFactoryDependenciesMap
+  //   >,
+  //   NewFactoryDependenciesMap extends FactoryDependenciesMap<ExistingFactories>
+  // >(
+  //   name: Name,
+  //   f: NewFactory,
+  //   dependencies?: NewFactoryDependenciesMap
+  // ): void;
+} & FormattedFactories;
 
 export type AddFactoryWithDeps<
   ExistingFactories extends Factories,
