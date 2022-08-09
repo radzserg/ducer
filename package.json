@@ -2,8 +2,11 @@
   "name": "ducer",
   "version": "0.0.1",
   "description": "client agnostic data seeder library",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
+    "build-prod": "rm -Rf ./dist/* && NODE_ENV=production tsc --build tsconfig.json && cp README.md package.json dist/",
     "test": "jest",
     "test:types": "jest -c jest.config.tsd.js",
     "prettify": "prettier --write --ignore-unknown src",

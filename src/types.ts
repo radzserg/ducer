@@ -23,8 +23,8 @@ export type OutcomeFactory<
   ? (
       input: Input,
       deps: {
-        [Property in keyof NewDependencies]: Partial<
-          ExtractInputParameter<ExistingFactories[NewDependencies[Property]]>
+        [Property in keyof NewDependencies]: ExtractInputParameter<
+          ExistingFactories[NewDependencies[Property]]
         >;
       }
     ) => Output
@@ -59,7 +59,7 @@ export type AddFactoryWithDeps<
 > = ExistingFactories &
   {
     [k in Name]: OutcomeFactory<
-      Partial<ExtractInputParameter<NewFactory>>,
+      ExtractInputParameter<NewFactory>,
       Promise<
         {
           [n in Name]: Awaited<ReturnType<NewFactory>>;
@@ -82,7 +82,7 @@ export type AddFactory<
 > = ExistingFactories &
   {
     [k in Name]: OutcomeFactory<
-      Partial<ExtractInputParameter<NewFactory>>,
+      ExtractInputParameter<NewFactory>,
       Promise<
         {
           [n in Name]: Awaited<ReturnType<NewFactory>>;

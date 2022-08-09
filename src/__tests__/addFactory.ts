@@ -92,7 +92,7 @@ describe("addFactory", () => {
         };
       }
     );
-    const { article } = await iMake.article({});
+    const { article } = await iMake.article();
     expect(article).toEqual({
       id: 456,
       userId: 123,
