@@ -9,7 +9,7 @@ import {
 } from "./testTypes";
 
 describe("addFactory", () => {
-  it("adds simple story to the bag", async () => {
+  it("adds simple factory and calls it without parameters", async () => {
     const iMake: Ducer = new Ducer();
     iMake.addFactory(
       "user",
@@ -25,7 +25,32 @@ describe("addFactory", () => {
         };
       }
     );
-    const user = await iMake.user({
+    const { user } = await iMake.user();
+    expect(user).toMatchObject({
+      id: expect.any(Number),
+      firstName: expect.any(String),
+      lastName: expect.any(String),
+      createdAt: expect.any(Date),
+    });
+  });
+
+  it("adds simple and calls it with parameters", async () => {
+    const iMake: Ducer = new Ducer();
+    iMake.addFactory(
+      "user",
+      async (userData: Partial<UserInput>): Promise<User> => {
+        return {
+          ...{
+            id: 123,
+            firstName: "John",
+            lastName: "Doe",
+            createdAt: new Date("2022-02-02"),
+          },
+          ...userData,
+        };
+      }
+    );
+    const { user } = await iMake.user({
       firstName: "Tom",
       lastName: "Lee",
     });
@@ -56,7 +81,7 @@ describe("addFactory", () => {
     iMake.addFactory(
       "article",
       async (article: Partial<ArticleInput>): Promise<Article> => {
-        const { user } = await iMake.user({});
+        const { user } = await iMake.user();
         return {
           ...{
             id: 456,
@@ -96,25 +121,13 @@ describe("addFactory with dependencies", () => {
     producer.addFactory(
       "paidProject",
       async (
-        paidProject: Partial<PaidProjectInput>,
+        paidProject: Partial<PaidProjectInput> = {},
         { client, contractor }: { client: User; contractor: User }
       ) => {
-        // return {
-        //   client,
-        //   contractor,
-        //   paidProject: {
-        //     ...{
-        //       id: 456,
-        //       title: "Generated title",
-        //     },
-        //     ...paidProject,
-        //   },
-        // };
-
         return {
           ...{
             id: 456,
-            title: "Generated title",
+            title: `Contract between ${client.firstName} and ${contractor.firstName}`,
           },
           ...paidProject,
         } as PaidProject;
@@ -125,63 +138,33 @@ describe("addFactory with dependencies", () => {
       }
     );
 
-    const p = await producer.paidProject(
+    const { client, contractor, paidProject } = await producer.paidProject(
       {
-        title: "My Project",
+        id: 678,
       },
       {
         contractor: {
-          id: 123,
           firstName: "John",
-          lastName: "Doe",
-          createdAt: new Date(),
         },
         client: {
-          id: 123,
-          firstName: "John",
-          lastName: "Doe",
-          createdAt: new Date(),
+          firstName: "Tom",
         },
       }
     );
 
-    const r = await producer.make("paidProject");
-    const { client, contractor, paidProject } = await producer.make(
-      "paidProject",
-      {
-        title: "My Project",
-      },
-      {
-        contractor: {
-          id: 123,
-          firstName: "John",
-          lastName: "Doe",
-          createdAt: new Date(),
-        },
-        client: {
-          id: 123,
-          firstName: "John",
-          lastName: "Doe",
-          createdAt: new Date(),
-        },
-      }
-    );
-    //   expect(paidProject).toEqual({
-    //     id: 456,
-    //     title: "My Project",
-    //   });
-    //   expect(contractor).toEqual({
-    //     id: 123,
-    //     firstName: "John",
-    //     lastName: "Doe",
-    //     createdAt: new Date("2022-02-02"),
-    //   });
-    //   expect(client).toEqual({
-    //     id: 123,
-    //     firstName: "Kate",
-    //     lastName: "Toms",
-    //     createdAt: new Date("2022-02-02"),
-    //   });
-    // });
+    expect(paidProject).toMatchObject({
+      id: 678,
+      title: "Contract between Tom and John",
+    });
+    expect(client).toMatchObject({
+      id: 123,
+      firstName: "Tom",
+      lastName: "Doe",
+    });
+    expect(contractor).toMatchObject({
+      id: 123,
+      firstName: "John",
+      lastName: "Doe",
+    });
   });
 });
