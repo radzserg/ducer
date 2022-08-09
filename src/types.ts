@@ -1,10 +1,3 @@
-import {
-  PaidProject,
-  PaidProjectInput,
-  User,
-  UserInput,
-} from "./__tests__/testTypes";
-
 export type IncomeFactory<
   Input = any,
   Output extends Promise<any> = Promise<any>,
