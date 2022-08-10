@@ -40,7 +40,6 @@ export class Ducer<
       NewFactory,
       NewFactoryDependenciesMap
     >;
-
   addFactory(
     name: string,
     factory: OutcomeFactory,

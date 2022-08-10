@@ -1,8 +1,8 @@
 # Motivation
 
-This package is an extension of the [rs-db-seeder](https://www.npmjs.com/package/rs-db-seeder) idea. While rs-db-seeder
-works at a low level, directly writing data to the database, Ducer works at the API level allowing to fill in data
-in the same way as the real application does.
+Ducer is framework-agnostic library. You can write data directly to DB, call your REST or graphql API. It's your responsibility
+to implement data providers. Ducer encourages you to seed data in the same way as your application does. Call your API
+to fill in the data. Use direct DB updates where there's no other way.
 
 Features:
 
@@ -13,40 +13,30 @@ Features:
 
 # How to use
 
-Ducer is framework-agnostic library. You can write data directly to DB, call your REST or graphql API. It's your responsibility
-to implement data providers. Ducer encourages you to seed data in the same way as your application does. Call your API
-to fill in the data. Use direct DB updates where there's no other way.
-
 ### Simple scenarios
 
 ```typescript
-function createDucer(axios) {
-  const producer: Ducer = new Ducer();
-  producer.addFactory(
-    "user",
-    async (userData: Partial<UserInput>): Promise<User> => {
-      const fullUserData = {
-        ...{
-          firstName: chance.firstName(), // use chance or faker to create "like a real" data
-          lastName: chance.lastName(),
-        },
-        ...userData,
-      };
-      // call your API to register new user
-      const user = await axios.post("/user", fullUserData);
-      return user;
-    }
-  );
-  return producer;
-}
-
-// seed script
-import axios from "axios";
-
-const producer = createDucer(axios);
-const user = await producer.make("user");
-const userJohn = await producer.make("user", {
-  firstName: "John", // we want to override firstName field
+const iMake: Ducer = new Ducer();
+iMake.addFactory(
+  "user",
+  async (userData: Partial<UserInput>): Promise<User> => {
+    return {
+      ...{
+        id: 123,
+        firstName: "John",
+        lastName: "Doe",
+        createdAt: new Date("2022-02-02"),
+      },
+      ...userData,
+    };
+  }
+);
+const { user } = await iMake.user();
+expect(user).toMatchObject({
+  id: expect.any(Number),
+  firstName: expect.any(String),
+  lastName: expect.any(String),
+  createdAt: expect.any(Date),
 });
 ```
 
@@ -56,48 +46,50 @@ In more complex scenarios, we may need to create factories based on other factor
 an article that should have an author.
 
 ```typescript
-const producer: Ducer = new Ducer();
-producer.addFactory("user", (userData: Partial<UserInput>): User => {
-  return {
-    ...{
-      id: 123,
-      firstName: "John",
-      lastName: "Doe",
-      createdAt: new Date("2022-02-02"),
-    },
-    ...userData,
-  };
-});
-producer.addParentFactory(
+const iMake: Ducer = new Ducer();
+iMake.addFactory(
+  "user",
+  (userData: Partial<UserInput>): User => {
+    // write to DB/call API whatever you need
+    return {
+      ...{
+        id: 123,
+        firstName: "John",
+        lastName: "Doe",
+        createdAt: new Date("2022-02-02"),
+      },
+      ...userData,
+    };
+  }
+);
+iMake.addFactory(
   "article",
-  // we declare dependencies, where author is dependency name
-  // and "user" is referencet to existing factory
-  { author: "user" },
   (
     article: Partial<ArticleInput>,
     { author }: { author: User } // author will be automatically created
   ) => {
     return {
-      author,
-      article: {
-        ...{
-          id: 456,
-          title: "Generated title",
-          author_id: author.id,
-        },
-        ...article,
-      },
+      id: 456,
+      title: "Generated title",
+      author_id: author.id,
     };
-  }
-);
-
-// in seeder script
-const { article } = producer.make("article");
-// when you need more flexibility
-const { article: customizedArticle, author } = producer.make("article", {
-  author: { firstName: "John" },
-  article: {
-    title: "My Customized Title",
   },
+  // we declare dependencies, where author is dependency name
+  // and "user" is referenced to existing factory
+  { author: "user" }
+);
+const { article, author } = await iMake.article(
+  { title: "My article" },
+  { author: { firstName: "Tome" } }
+);
+expect(article).toEqual({
+  id: 456,
+  title: "Generated title",
+  author_id: 123,
+});
+expect(author).toMatchObject({
+  id: 123,
+  firstName: "Tome",
+  lastName: "Doe",
 });
 ```

@@ -167,4 +167,52 @@ describe("addFactory with dependencies", () => {
       lastName: "Doe",
     });
   });
+
+  test("article with author", async () => {
+    const iMake: Ducer = new Ducer();
+    iMake.addFactory(
+      "user",
+      (userData: Partial<UserInput>): User => {
+        return {
+          ...{
+            id: 123,
+            firstName: "John",
+            lastName: "Doe",
+            createdAt: new Date("2022-02-02"),
+          },
+          ...userData,
+        };
+      }
+    );
+    iMake.addFactory(
+      "article",
+      (
+        article: Partial<ArticleInput>,
+        { author }: { author: User } // author will be automatically created
+      ) => {
+        return {
+          id: 456,
+          title: "Generated title",
+          author_id: author.id,
+        };
+      },
+      // we declare dependencies, where author is dependency name
+      // and "user" is referenced to existing factory
+      { author: "user" }
+    );
+    const { article, author } = await iMake.article(
+      { title: "My article" },
+      { author: { firstName: "Tome" } }
+    );
+    expect(article).toEqual({
+      id: 456,
+      title: "Generated title",
+      author_id: 123,
+    });
+    expect(author).toMatchObject({
+      id: 123,
+      firstName: "Tome",
+      lastName: "Doe",
+    });
+  });
 });
