@@ -1,9 +1,9 @@
 {
   "name": "ducer",
-  "version": "0.0.4",
+  "version": "0.0.3",
   "description": "client agnostic data seeder library",
   "files": [
-    "dist"
+    "dist/**"
   ],
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
