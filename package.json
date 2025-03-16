@@ -1,6 +1,6 @@
 {
   "name": "ducer",
-  "version": "0.0.3",
+  "version": "0.0.5",
   "description": "client agnostic data seeder library",
   "files": [
     "dist/**"
