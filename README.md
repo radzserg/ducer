@@ -1,19 +1,21 @@
-# Motivation
+# **Ducer - Framework-Agnostic Data Factory**
 
-Ducer is framework-agnostic library. You can write data directly to DB, call your REST or graphql API. It's your responsibility
-to implement data providers. Ducer encourages you to seed data in the same way as your application does. Call your API
-to fill in the data. Use direct DB updates where there's no other way.
+## **Motivation**
 
-Features:
+Ducer is a **framework-agnostic** library that allows you to generate data for your application in a way that closely mimics real-world conditions. Whether you're inserting data directly into a database, calling a REST API, or interacting with GraphQL, **Ducer provides full flexibility**—you define the data providers.
 
-- ability to generate data as close as possible to real conditions
-- ability to play complex data scenarios
-- ability to easily tweak data at different levels of nesting
-- ability to easily obtain (if necessary) all generated data from different levels of nesting.
+Instead of manually seeding your database or mocking API responses, **Ducer encourages you to generate test data in the same way your application does**. This ensures consistency and makes it easier to test complex scenarios.
 
-# How to use
+### **Key Features**
+✅ Generate data that accurately reflects real-world conditions.  
+✅ Support for complex, interdependent data structures.  
+✅ Easily customize data at different levels of nesting.  
+✅ Retrieve all generated data, including dependencies, if needed.
 
-### Simple scenarios
+
+# Usage
+
+### 1. Simple scenarios
 
 ```typescript
 const iMake: Ducer = new Ducer();
@@ -40,7 +42,7 @@ expect(user).toMatchObject({
 });
 ```
 
-### Complex scenarios
+### 2. Complex scenarios
 
 In more complex scenarios, we may need to create factories based on other factories. For example, we need to create
 an article that should have an author.
@@ -93,3 +95,45 @@ expect(author).toMatchObject({
   lastName: "Doe",
 });
 ```
+
+
+
+### 3. Integration with data providers
+
+Ducer allows you to integrate with any data provider, such as databases or APIs.  
+Here’s an example using Drizzle ORM to write directly to a database:
+
+```typescript
+
+import {
+  user as userTable,
+} from '@/database/schema/drizzle.js';
+
+const iMake: Ducer = new Ducer();
+iMake.addFactory(
+  "user",
+  async (userData: Partial<UserInput>): Promise<User> => {
+    const defaultData: UserInput = {
+      id: uuidv4(),
+      firstName: "John",
+      lastName: "Doe",
+      createdAt: new Date("2022-02-02"),
+    }
+    
+    const result = {
+      ...defaultData,
+      ...data,
+    };
+    await database.insert(userTable).values(defaultData);
+
+    return result;
+  }
+);
+```
+
+### Why Use Ducer?
+
+-	🛠 Framework Agnostic: Works with any database, API, or service.
+-	🔄 Reproducible Data: Ensures consistent test data across environments.
+-	🔗 Supports Dependencies: Easily define complex object relationships.
+-	⚡ Customizable: Define your own factories and extend them as needed.

@@ -23,8 +23,8 @@ export type OutcomeFactory<
   NewDependencies = void
 > = NewDependencies extends FactoryDependenciesMap<ExistingFactories>
   ? (
-      input: Input,
-      deps: {
+      input?: Input,
+      deps?: {
         [Property in keyof NewDependencies]: ExtractInputParameter<
           ExistingFactories[NewDependencies[Property]]
         >;
@@ -74,22 +74,5 @@ export type AddFactoryWithDeps<
       >,
       ExistingFactories,
       FactoryDependencies
-    >;
-  };
-
-export type AddFactory<
-  ExistingFactories extends Factories,
-  Name extends string,
-  NewFactory extends IncomeFactory<any, any>
-> = ExistingFactories &
-  {
-    [k in Name]: OutcomeFactory<
-      ExtractInputParameter<NewFactory>,
-      Promise<
-        {
-          [n in Name]: Awaited<ReturnType<NewFactory>>;
-        }
-      >,
-      ExistingFactories
     >;
   };

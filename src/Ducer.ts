@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-empty-object-type */
 import {
-  AddFactory,
   AddFactoryWithDeps,
   Factories,
   OutcomeFactory,
@@ -12,14 +11,8 @@ export class Ducer<
   ExistingFactories extends Factories = {},
   FormattedFactories extends Factories = {}
 > {
-  private factories: ExistingFactories = {} as ExistingFactories;
+  private factories: string[] = [];
 
-  addFactory<Name extends string, NewFactory extends (input: any) => any>(
-    name: Name,
-    f: NewFactory
-  ): asserts this is Ducer<ExistingFactories & { [k in Name]: NewFactory }> &
-    FormattedFactories &
-    AddFactory<ExistingFactories, Name, NewFactory>;
   addFactory<
     Name extends string,
     NewFactory extends IncomeFactory<
@@ -46,15 +39,17 @@ export class Ducer<
     factory: OutcomeFactory,
     dependencies?: FactoryDependenciesMap<ExistingFactories>
   ) {
-    if (this.factories[name]) {
+    if (this.factories.includes(name)) {
       throw new Error(`Factory with name ${name} has been already defined`);
     }
+    this.factories.push(name);
 
     const wrappedFactory = async (
       input: Parameters<OutcomeFactory>,
-      dependencyInputValues?: any
+      dependencyInputValues: any = {}
     ) => {
       let dependencyValues = {};
+
       if (dependencies) {
         const unmergedDependencyValues: {
           [x: string]: any;
@@ -71,7 +66,8 @@ export class Ducer<
               const dependencyFactory: OutcomeFactory = this[
                 dependencyMappedName
               ];
-              const dependencyInput = dependencyInputValues[dependencyName];
+
+              const dependencyInput = dependencyInputValues[dependencyName] ?? {};
               return new Promise<{
                 [x: string]: any;
               }>((resolve) => {
