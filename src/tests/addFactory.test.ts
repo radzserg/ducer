@@ -7,6 +7,7 @@ import {
   User,
   UserInput,
 } from "./testTypes";
+import { describe, expect, it } from "vitest";
 
 describe("addFactory", () => {
   it("adds simple factory and calls it without parameters", async () => {
@@ -168,7 +169,7 @@ describe("addFactory with dependencies", () => {
     });
   });
 
-  test("article with author", async () => {
+  it("article with author", async () => {
     const iMake: Ducer = new Ducer();
     iMake.addFactory(
       "user",

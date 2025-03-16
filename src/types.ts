@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-empty-object-type */
+
 export type IncomeFactory<
   Input = any,
   Output extends Promise<any> = Promise<any>,

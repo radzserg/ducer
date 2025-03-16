@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-empty-object-type */
 import {
   AddFactory,
   AddFactoryWithDeps,
@@ -60,12 +61,13 @@ export class Ducer<
         }[] = await Promise.all(
           Object.entries(dependencies).map(
             ([dependencyName, dependencyMappedName]) => {
-              if (!this.hasOwnProperty(dependencyMappedName)) {
+              if (!Object.prototype.hasOwnProperty.call(this, dependencyMappedName)) {
                 throw new Error(
-                  `Factory ${dependencyMappedName} does not exist`
+                  `Factory ${String(dependencyMappedName)} does not exist`
                 );
               }
-              // @ts-ignore
+
+              // @ts-expect-error - we know that dependencyFactory is a function
               const dependencyFactory: OutcomeFactory = this[
                 dependencyMappedName
               ];
@@ -85,7 +87,7 @@ export class Ducer<
         });
       }
 
-      // @ts-ignore
+      // @ts-expect-error - we know that factory is a function
       const result = await factory(input, dependencyValues);
       return {
         ...{ [name]: result },
