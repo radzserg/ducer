@@ -10,7 +10,7 @@
   "module": "./dist/index.js",
   "scripts": {
     "build": "tsc",
-    "test": "vitest",
+    "test": "vitest --run",
     "pre-commit": "lint-staged",
     "lint": "yarn eslint src/**/**.ts --fix"
   },
