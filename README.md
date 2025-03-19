@@ -124,7 +124,7 @@ iMake.addFactory(
       ...defaultData,
       ...data,
     };
-    await database.insert(userTable).values(defaultData);
+    await database.insert(userTable).values(result);
 
     return result;
   }
